@@ -239,12 +239,12 @@ document.getElementById('btn').addEventListener('click',async()=>{
     st.innerHTML='<span class="spinner"></span> AI анализирует...';
     const resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,system:'Ты возвращаешь ТОЛЬКО валидный JSON. Никакого текста, никаких пояснений, никакого markdown. Первый символ ответа — {, последний — }.',messages:[{role:'user',content:parts},{role:'assistant',content:'{'}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,system:'Ты возвращаешь ТОЛЬКО валидный JSON. Никакого текста, никаких пояснений, никакого markdown. Первый символ ответа — {, последний — }.',messages:[{role:'user',content:parts}]})
     });
     const data=await resp.json();
     if(data.error)throw new Error(data.error.message);
-    const raw='{'+( data.content||[]).map(x=>x.text||'').join('');
-    const d=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const raw=(data.content||[]).map(x=>x.text||'').join('');
+    const jsonMatch=raw.match(/\{[\s\S]*\}/);if(!jsonMatch)throw new Error('JSON не найден в ответе');const d=JSON.parse(jsonMatch[0]);
     st.innerHTML='';render(d,res);
   }catch(e){
     st.innerHTML='<span style="color:#c0392b"><i class="ti ti-alert-circle"></i> '+e.message+'</span>';
