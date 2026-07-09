@@ -67,6 +67,10 @@ button#btn:disabled{background:#ccc;border-color:#ccc;cursor:not-allowed;opacity
 <div class="container">
   <h1><i class="ti ti-receipt"></i> Проверка чеков</h1>
 
+  <div class="brow" style="margin-bottom:8px">
+    <span style="font-size:13px;color:#666;font-weight:500;white-space:nowrap">API ключ</span>
+    <input id="apikey" type="password" placeholder="sk-ant-..." style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;font-size:13px;color:#1a1a1a;outline:none">
+  </div>
   <div class="brow">
     <label for="bt">Бутик</label>
     <select id="bt">
@@ -125,6 +129,12 @@ function setupInput(inputId,zoneId,tgId,arr){
   });
 }
 setupInput('ir','zr','tr',rF);
+
+// Сохраняем и загружаем API ключ
+const apikeyInp=document.getElementById('apikey');
+const savedKey=localStorage.getItem('anthropic_api_key');
+if(savedKey)apikeyInp.value=savedKey;
+apikeyInp.addEventListener('change',()=>localStorage.setItem('anthropic_api_key',apikeyInp.value.trim()));
 setupInput('is','zs','ts',sF);
 
 document.getElementById('bt').addEventListener('change',function(){
@@ -213,6 +223,8 @@ const PROMPT=`Ты помощник по проверке розничных п�
 document.getElementById('btn').addEventListener('click',async()=>{
   const btn=document.getElementById('btn'),st=document.getElementById('st'),res=document.getElementById('res');
   const bv=document.getElementById('bt').value;
+  const apiKey=document.getElementById('apikey').value.trim();
+  if(!apiKey){st.innerHTML='<span style="color:#c0392b">Введите API ключ</span>';btn.disabled=false;return;}
   btn.disabled=true;res.innerHTML='';
   try{
     st.innerHTML='<span class="spinner"></span> Конвертирую файлы...';
@@ -224,7 +236,7 @@ document.getElementById('btn').addEventListener('click',async()=>{
     }
     st.innerHTML='<span class="spinner"></span> AI анализирует...';
     const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:parts}]})
     });
     const data=await resp.json();
