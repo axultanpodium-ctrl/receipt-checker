@@ -240,14 +240,14 @@ document.getElementById('btn').addEventListener('click',async()=>{
     st.innerHTML='<span class="spinner"></span> AI анализирует...';
     const resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:8000,system:'Ты возвращаешь ТОЛЬКО валидный JSON. Никакого текста, никаких пояснений, никакого markdown. Первый символ ответа — {, последний — }.',messages:[{role:'user',content:parts},{role:'assistant',content:'{'}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:8000,system:'Ты возвращаешь ТОЛЬКО валидный JSON. Никакого текста, никаких пояснений, никакого markdown. Первый символ ответа — {, последний — }.',messages:[{role:'user',content:parts}]})
     });
     const data=await resp.json();
     if(data.error)throw new Error(data.error.message);
     if(data.stop_reason==='max_tokens'){
       throw new Error('Ответ обрезан (не хватило max_tokens) — попробуй загрузить меньше чеков за раз или уменьшить количество страниц PDF.');
     }
-    let raw='{'+(data.content||[]).map(x=>x.text||'').join('');
+    let raw=(data.content||[]).map(x=>x.text||'').join('');
     let d;
     try{
       const jsonMatch=raw.match(/\{[\s\S]*\}/);
